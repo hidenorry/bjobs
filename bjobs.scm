@@ -15,26 +15,27 @@
 
 (define (get-all-jobs lis)
   (cdadr lis))
+(define (get-one-job jobs) (cdar jobs))
 
-(define (show-element-with-number input)
-  (define (get-one-job jobs) (cdar jobs))
-  (map-with-index
-   (lambda (c n) (list c n))
-   (get-one-job (get-all-jobs input))))
+(define (element-with-number lis)
+  (map-with-index (lambda args args) lis))
 
-(define (select-jobs cont input)
+(define (select-jobs cont all-jobs)
+  (define alis (element-with-number (get-one-job all-jobs)))
   (define (get-contents lis) (cdr lis))
-  (define (get-jobs input)
-    (map (lambda (in)
-           (apply append (map (lambda (c) (ref (get-contents in) c)) cont))) input))
-  (get-jobs input))
+  (define (cont->key cont alis)
+    (map (lambda (c) (if-let1 it (assoc c alis) (caadr it) it)) cont))
+  (define (get-jobs all-jobs)
+    (map (lambda (in) (map (lambda (k) (assoc k (get-contents in)))
+                           (cont->key cont alis))) all-jobs))
+  (get-jobs all-jobs))
 
 (define (main args)
   (define inp (command->sxml "qstat -x"))
   (if (null? (cdr args))
       (for-each
        (lambda (l) (match l ((c (n . rest)) (format #t "~d ~s~%" c n))))
-       (show-element-with-number inp))
-      (for-each (lambda (line) (format #t "~{~a:~a ~}~%" line))
-                (select-jobs (map string->number (cdr args))
-                             (get-all-jobs inp)))))
+       (element-with-number (get-one-job (get-all-jobs inp))))
+      (for-each
+       (lambda (line) (format #t "~{~a:~a ~}~%" (apply append line)))
+       (select-jobs (map string->number (cdr args)) (get-all-jobs inp)))))
