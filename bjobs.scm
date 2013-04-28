@@ -40,5 +40,8 @@
       (for-each
        (lambda (line)
          (format #t "~{~a:~a ~}~%"
-                 (append-map (lambda (l) (list (car l) (cdr l))) line)))
+                 (append-map (lambda (l) (if l
+                                             (list (car l) (cdr l))
+                                             '()))
+                             line)))
        (select-jobs (map string->number args) (get-all-jobs inp)))))
